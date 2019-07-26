@@ -42,7 +42,7 @@ class WPFDGitHubPluginUpdater {
      * @return null
      */
     private function initPluginData() {
-		$this->slug = plugin_basename( $this->pluginFile );
+		$this->slug = 's-maintain-api/s-maintain-api.php';
 		$this->pluginData = get_plugin_data( $this->pluginFile );
     }
 
