@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: S:maintain API
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Sveum AS
  * Author URI: https://sveum.as
  * Description: Creates API routes for your WP site that allows communication with the S:maintain dashboard.
