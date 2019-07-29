@@ -42,8 +42,8 @@ class WPFDGitHubPluginUpdater {
      * @return null
      */
     private function initPluginData() {
-		$this->slug = 's-maintain-api/s-maintain-api.php';
-		$this->pluginData = get_plugin_data( $this->pluginFile );
+        $this->slug = 's-maintain-api/s-maintain-api.php';
+        $this->pluginData = get_plugin_data( $this->pluginFile );
     }
 
     /**
@@ -53,20 +53,20 @@ class WPFDGitHubPluginUpdater {
      */
     private function getRepoReleaseInfo() {
         if ( ! empty( $this->githubAPIResult ) )
-    		return;
+            return;
 
-		$url = "https://api.github.com/repos/{$this->username}/{$this->repo}/releases";
-		
-		if ( ! empty( $this->accessToken ) )
-		    $url = add_query_arg( array( "access_token" => $this->accessToken ), $url );
+        $url = "https://api.github.com/repos/{$this->username}/{$this->repo}/releases";
 
-		$this->githubAPIResult = wp_remote_retrieve_body( wp_remote_get( $url ) );
+        if ( ! empty( $this->accessToken ) )
+            $url = add_query_arg( array( "access_token" => $this->accessToken ), $url );
 
-		if ( ! empty( $this->githubAPIResult ) )
-		    $this->githubAPIResult = json_decode( $this->githubAPIResult );
+        $this->githubAPIResult = wp_remote_retrieve_body( wp_remote_get( $url ) );
 
-		if ( is_array( $this->githubAPIResult ) )
-		    $this->githubAPIResult = $this->githubAPIResult[0];
+        if ( ! empty( $this->githubAPIResult ) )
+            $this->githubAPIResult = json_decode( $this->githubAPIResult );
+
+        if ( is_array( $this->githubAPIResult ) )
+            $this->githubAPIResult = $this->githubAPIResult[0];
     }
 
     /**
@@ -77,28 +77,28 @@ class WPFDGitHubPluginUpdater {
      */
     public function setTransitent( $transient ) {
         if ( empty( $transient->checked ) )
-    		return $transient;
+            return $transient;
 
-		$this->initPluginData();
-		$this->getRepoReleaseInfo();
+        $this->initPluginData();
+        $this->getRepoReleaseInfo();
 
-		$doUpdate = version_compare( $this->githubAPIResult->tag_name, $transient->checked[$this->slug] );
+        $doUpdate = version_compare( $this->githubAPIResult->tag_name, $transient->checked[$this->slug] );
 
-		if ( $doUpdate ) {
-			$package = $this->githubAPIResult->zipball_url;
+        if ( $doUpdate ) {
+            $package = $this->githubAPIResult->zipball_url;
 
-			if ( ! empty( $this->accessToken ) )
-			    $package = add_query_arg( array( "access_token" => $this->accessToken ), $package );
+            if ( ! empty( $this->accessToken ) )
+                $package = add_query_arg( array( "access_token" => $this->accessToken ), $package );
 
-			// Plugin object
-			$obj = new stdClass();
-			$obj->slug = $this->slug;
-			$obj->new_version = $this->githubAPIResult->tag_name;
-			$obj->url = $this->pluginData["PluginURI"];
-			$obj->package = $package;
+            // Plugin object
+            $obj = new stdClass();
+            $obj->slug = $this->slug;
+            $obj->new_version = $this->githubAPIResult->tag_name;
+            $obj->url = $this->pluginData["PluginURI"];
+            $obj->package = $package;
 
-			$transient->response[$this->slug] = $obj;
-		}
+            $transient->response[$this->slug] = $obj;
+        }
 
         return $transient;
     }
@@ -112,69 +112,69 @@ class WPFDGitHubPluginUpdater {
      * @return object
      */
     public function setPluginInfo( $false, $action, $response ) {
-		$this->initPluginData();
-		$this->getRepoReleaseInfo();
+        $this->initPluginData();
+        $this->getRepoReleaseInfo();
 
-		if ( empty( $response->slug ) || $response->slug != $this->slug )
-		    return $false;
+        if ( empty( $response->slug ) || $response->slug != $this->slug )
+            return $false;
 
         $response->name = $this->pluginData["Name"];
-		$response->plugin_name  = $this->pluginData["Name"];
-		$response->slug = $this->slug;
-		
-		$response->last_updated = $this->githubAPIResult->published_at;
-		$response->version = $this->githubAPIResult->tag_name;
+        $response->plugin_name  = $this->pluginData["Name"];
+        $response->slug = $this->slug;
 
-		$response->author = $this->pluginData["AuthorName"];
-		$response->homepage = $this->pluginData["PluginURI"];
-		
-		$response->banners = array(
-		    'low' => plugin_dir_url( __FILE__ ) . 'admin/images/banner-772x250.png',
+        $response->last_updated = $this->githubAPIResult->published_at;
+        $response->version = $this->githubAPIResult->tag_name;
+
+        $response->author = $this->pluginData["AuthorName"];
+        $response->homepage = $this->pluginData["PluginURI"];
+
+        $response->banners = array(
+            'low' => plugin_dir_url( __FILE__ ) . 'admin/images/banner-772x250.png',
         );
         $response->icons = array(
             '1x' => plugin_dir_url( __FILE__ ) . 'admin/images/icon-128x128.png',  
         );
 
-		$downloadLink = $this->githubAPIResult->zipball_url;
+        $downloadLink = $this->githubAPIResult->zipball_url;
 
-		if ( !empty( $this->accessToken ) ) {
-		    $downloadLink = add_query_arg(
-		        array( "access_token" => $this->accessToken ),
-		        $downloadLink
-		    );
-		}
+        if ( !empty( $this->accessToken ) ) {
+            $downloadLink = add_query_arg(
+                array( "access_token" => $this->accessToken ),
+                $downloadLink
+            );
+        }
 
-		$response->download_link = $downloadLink;
+        $response->download_link = $downloadLink;
 
         require_once( plugin_dir_path( __FILE__ ) . "admin/Parsedown.php" );
 
-		$response->sections = array(
-			'Description' 	=> $this->pluginData["Description"],
-			'changelog' 	=> class_exists( "Parsedown" )
-                ? Parsedown::instance()->parse( $this->githubAPIResult->body )
-                : $this->githubAPIResult->body
-		);
+        $response->sections = array(
+            'Description' 	=> $this->pluginData["Description"],
+            'changelog' 	=> class_exists( "Parsedown" )
+            ? Parsedown::instance()->parse( $this->githubAPIResult->body )
+            : $this->githubAPIResult->body
+        );
 
-		$matches = null;
-		preg_match( "/requires:\s([\d\.]+)/i", $this->githubAPIResult->body, $matches );
-		if ( ! empty( $matches ) ) {
-		    if ( is_array( $matches ) ) {
-		        if ( count( $matches ) > 1 ) {
-		            $response->requires = $matches[1];
-		        }
-		    }
-		}
+        $matches = null;
+        preg_match( "/requires:\s([\d\.]+)/i", $this->githubAPIResult->body, $matches );
+        if ( ! empty( $matches ) ) {
+            if ( is_array( $matches ) ) {
+                if ( count( $matches ) > 1 ) {
+                    $response->requires = $matches[1];
+                }
+            }
+        }
 
-		$matches = null;
-		preg_match( "/tested:\s([\d\.]+)/i", $this->githubAPIResult->body, $matches );
-		if ( ! empty( $matches ) ) {
-		    if ( is_array( $matches ) ) {
-		        if ( count( $matches ) > 1 ) {
-		            $response->tested = $matches[1];
-		        }
-		    }
-		}
-		
+        $matches = null;
+        preg_match( "/tested:\s([\d\.]+)/i", $this->githubAPIResult->body, $matches );
+        if ( ! empty( $matches ) ) {
+            if ( is_array( $matches ) ) {
+                if ( count( $matches ) > 1 ) {
+                    $response->tested = $matches[1];
+                }
+            }
+        }
+
         return $response;
     }
 
@@ -186,8 +186,8 @@ class WPFDGitHubPluginUpdater {
      * @return null
      */
     public function preInstall( $true, $args ) {
-		$this->initPluginData();
-    	$this->pluginActivated = is_plugin_active( $this->slug );
+        $this->initPluginData();
+        $this->pluginActivated = is_plugin_active( $this->slug );
     }
 
     /**
@@ -199,14 +199,14 @@ class WPFDGitHubPluginUpdater {
      * @return object
      */
     public function postInstall( $true, $hook_extra, $result ) {
-		global $wp_filesystem;
+        global $wp_filesystem;
 
-		$pluginFolder = WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . dirname( $this->slug );
-		$wp_filesystem->move( $result['destination'], $pluginFolder );
-		$result['destination'] = $pluginFolder;
+        $pluginFolder = WP_PLUGIN_DIR . '/s-maintain-api/';
+        $wp_filesystem->move( $result['destination'], $pluginFolder );
+        $result['destination'] = $pluginFolder;
 
-		if ( $this->pluginActivated ) 
-		    $activate = activate_plugin( $this->slug );
+        if ( $this->pluginActivated ) 
+            $activate = activate_plugin( $this->slug );
 
         return $result;
     }
