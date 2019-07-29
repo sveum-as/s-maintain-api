@@ -66,7 +66,7 @@ function route_backup_backup_tables( $data ) {
     
     mysqli_close( $conn );
     
-    $backup_dir = wp_upload_dir()['basedir'] . '/backups/';
+    $backup_dir = plugin_dir_path( __DIR__ ) . 'temp/backups/';
     $backup_file = date('Ymd_His') . '.sql';
     
     $handle = fopen( $backup_dir . $backup_file, 'w+' );
@@ -114,7 +114,7 @@ function build_column( $conn, $values, $items, $j, $z) {
 function route_backup_backup_files() {
     $dir_path = ABSPATH;
     
-    $backup_dir = wp_upload_dir()['basedir'] . '/backups/';
+    $backup_dir = plugin_dir_path( __DIR__ ) . 'temp/backups/';
     $backup_file = date('Ymd_His') . '.tar';
     
     $archive = new PharData( $backup_dir . $backup_file );
